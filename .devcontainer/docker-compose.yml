@@ -6,6 +6,8 @@ services:
       - ../..:/workspaces:cached
     # network_mode: service:redis
     command: sleep infinity
+    networks:
+      - dev_network
 
   # ---------
   # | REDIS |
@@ -17,6 +19,8 @@ services:
     ## UNCOMMENT THESE LINES IF WE USE CUSTOM REDIS CONFIG ##
     volumes:
       - redis-data:/data
+    networks:
+      - dev_network
 
   # ---------------
   # | REDIS STACK |
@@ -28,8 +32,13 @@ services:
     ## UNCOMMENT THESE LINES IF WE USE CUSTOM REDIS CONFIG ##
     volumes:
       - redis-stack-data:/data
+    networks:
+      - dev_network
 
 volumes:
   redis-data:
   redis-stack-data:
   
+networks:
+  dev_network:
+    name: dev-network
