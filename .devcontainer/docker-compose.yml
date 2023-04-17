@@ -38,9 +38,24 @@ services:
     networks:
       - dev_network    
 
+  # -----------------
+  # | REDIS INSIGHT |
+  # -----------------
+  redis_insight:
+    image: redislabs/redisinsight:1.13.1
+    container_name: "redis_insight"
+    restart: unless-stopped     # "unless-stopped" or "always"
+    volumes:
+      - redis-insight-data:/db
+    ports:
+      - "8001:8001"
+    networks:
+      - dev_network   
+
 volumes:
   redis-data:
   redis-stack-data:
+  redis-insight-data:
   
 networks:
   dev_network:

@@ -4,7 +4,7 @@ import redis
 redis_host = os.getenv("REDIS_HOST", default="redis")
 redis_port = int(os.getenv("REDIS_PORT", default="6379"))
 redis_db = int(os.getenv("REDIS_DB", default="0"))
-redis_pass = str(os.getenv("REDIS_PASS", default=False))
+redis_pass = str(os.getenv("REDIS_PASS", default="repycon@#2022"))
 
 my_key = "minh key"
 my_value = "minh's value"
