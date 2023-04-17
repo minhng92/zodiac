@@ -1,0 +1,7 @@
+
+Customer:
+  _inherit: redis_om.JsonModel
+  _fields:
+    name: type=str required=True index=True
+    age: type=float required=False index=True
+    is_male: type=bool required=True index=True default=True
