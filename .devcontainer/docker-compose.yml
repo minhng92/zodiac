@@ -18,10 +18,12 @@ services:
     restart: unless-stopped     # "unless-stopped" or "always"
     ## UNCOMMENT THESE LINES IF WE USE CUSTOM REDIS CONFIG ##
     volumes:
+      - ./etc/redis.conf:/usr/local/etc/redis/redis.conf
       - redis-data:/data
     networks:
       - dev_network
-
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    
   # ---------------
   # | REDIS STACK |
   # ---------------
@@ -31,9 +33,10 @@ services:
     restart: unless-stopped     # "unless-stopped" or "always"
     ## UNCOMMENT THESE LINES IF WE USE CUSTOM REDIS CONFIG ##
     volumes:
+      - ./etc/redis-stack.conf:/redis-stack.conf
       - redis-stack-data:/data
     networks:
-      - dev_network
+      - dev_network    
 
 volumes:
   redis-data:
