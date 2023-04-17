@@ -49,6 +49,8 @@ services:
       - redis-insight-data:/db
     ports:
       - "8001:8001"
+    environment:
+      RITRUSTEDORIGINS: "*"
     networks:
       - dev_network   
 
