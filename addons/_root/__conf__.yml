@@ -1,0 +1,10 @@
+# ---------------
+# | FULL CONFIG |
+# ---------------
+NAME: Root Application
+DEPENDS:
+  # - <abs url>
+  # - <rel path>
+  - addons/stock_chart
+# MODELS:
+  # - <rel path to model.yml>

@@ -8,6 +8,9 @@ services:
     command: sleep infinity
     networks:
       - dev_network
+    environment:
+      REDIS_OM_URL: "redis://@redis_stack:6380"
+      REDIS_URL: "redis://:repycon@#2022@redis:6379/0"
 
   # ---------
   # | REDIS |
@@ -37,8 +40,6 @@ services:
       - redis-stack-data:/data
     networks:
       - dev_network    
-    environment:
-      REDIS_OM_URL: "redis://@redis_stack:6380"
 
   # -----------------
   # | REDIS INSIGHT |
