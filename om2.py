@@ -51,7 +51,7 @@ def main():
     # res = PosOrder.find(PosOrder.qty > 0).all()
     # print(res)
     
-    res2 = libcore.om.om_model.PosOrder2.find(libcore.om.om_model.PosOrder2.qty2 > 3).all()
+    res2 = libcore.om.om_model.PosOrder2.find(libcore.om.om_model.PosOrder2.qty2 >= 3).all()
     print("res2 (n=%d):" % len(res2), res2)
     pass
 

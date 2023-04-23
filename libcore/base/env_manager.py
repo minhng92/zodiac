@@ -2,50 +2,45 @@ import os
 from omegaconf import OmegaConf
 from redis.commands.graph.node import Node
 from redis.commands.graph.edge import Edge
-from .redis_manager import RedisManager
 from .singleton_class import SingletonClass
+from .redis_manager import RedisManager
+from .module_manager import ModuleManager
 
 class EnvManager(SingletonClass):
     def __init__(self):
-        self.conn = RedisManager().get_conn()
-        print("env manager ping", self.conn.ping())
-        self.conf_graph = self.conn.graph()
+        self.redis_manager = RedisManager()
+        self.module_manager = ModuleManager()
+        self.modules_from_config = []
+        self.install_from_config = ""
         pass
 
-    def build_graph_conf(self, config):
-        if not config: # early quit
-            return False
-
-        print("config", config)
-        print("is tupe list", isinstance(config, (tuple, list)), type(config))
-
-        if isinstance(config, (tuple, list)):
-            result = []
-            for cf in config:
-                result.append(self.build_graph_conf(cf))
-            return result
-        elif isinstance(config, str):
-            if os.path.isdir(config):
-                config = os.path.join(config, "__conf__.yml")
-            
-            config_dict = OmegaConf.to_container(OmegaConf.load(config))
-            addon_name = os.path.basename(os.path.dirname(os.path.abspath(config)))
-            result = Node(node_id=addon_name, label=addon_name, properties=config_dict)
-            self.conf_graph.add_node(result)
-
-            depend_nodes = self.build_graph_conf(config_dict.get("DEPENDS", False))
-            if depend_nodes:
-                for dnode in depend_nodes:
-                    print(result, "->", dnode)
-                    # self.conf_graph.add_edge(Edge(result, 'depends', dnode, properties={}))
-        print("No if elif", config)
-        return result
-
-    # Load config recursively
-    def load_config(self, config_paths=[]):
-        self.build_graph_conf(config_paths)
-        self.conf_graph.commit()
-        graph_keys = self.conf_graph.list_keys()
-        print("graph_keys", graph_keys)
+    # Load module recursively
+    def load_modules(self, modules_from_config=[], install_from_config=""):
+        self.modules_from_config = modules_from_config
+        self.install_from_config = install_from_config
+        self.module_manager.load_modules(module_paths=modules_from_config, install_modules=[module_code.strip() for module_code in install_from_config.split(",")])
         pass
     
+    # Add modules on-the-fly
+    def add_modules(self, modules_from_config=[]):
+        for module_config in modules_from_config:
+            # add module config to db
+            # TODO
+            pass
+        self.reload_modules()
+        pass
+
+    def install_modules(self, install_modules=[]):
+        for module_code in install_modules:
+            # set state to installed
+            # TODO
+            pass
+        self.reload_modules()
+
+    # Reload modules on-the-fly
+    def reload_modules(self):
+        self.load_modules(
+            modules_from_config=self.modules_from_config,
+            install_from_config=self.install_from_config,
+        )
+        pass

@@ -1,0 +1,3 @@
+NAME: Stock Chart
+DEPENDS:
+- modules/btc_chart

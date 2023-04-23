@@ -5,6 +5,7 @@ NAME: Root Application
 DEPENDS:
   # - <abs url>
   # - <rel path>
-  - addons/stock_chart
+  - modules/stock_chart
+  - modules/eth_chart
 # MODELS:
   # - <rel path to model.yml>

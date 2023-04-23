@@ -6,8 +6,7 @@ from tornado.options import options
 class RedisManager(SingletonClass):
     def __init__(self):
         self.conn = redis.from_url(options.redis_url)
-        print("Ping redis", self.conn.ping(), options.redis_url)
-        print(self.conn.set('foo', 'bar'))
+        print("Initialized Redis connection from url:", options.redis_url)
         pass
         
     def get_conn(self):

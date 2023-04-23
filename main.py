@@ -15,9 +15,12 @@ logging.basicConfig(
 )
 
 define("port", default=7777, help="port to listen on")
-define("config", default="addons/_root/__conf__.yml", help="app config file")
 define("num_workers", default=1, help="number of processes")
 define("redis_url", default="redis://@redis_stack:6380?decode_responses=True", help="Redis URL connection string")
+
+define("modules", default="modules/_root", help="app config file")
+define("extra_modules", default="modules/btc_chart", help="extra app config file")
+define("install", default="stock_chart", help="Install modules")
 
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, config):
@@ -38,7 +41,12 @@ def main():
 
     ## TODO: pass yml config to model manager to migrate data structure -> Redis OM
     env = EnvManager()
-    env.load_config(config_paths=[options.config,])
+    env.load_modules(
+        modules_from_config=[options.modules, options.extra_modules], 
+        install_from_config=options.install
+    )
+
+    raise Exception("Dev env stop here")
 
     # BUILD TORNADO APPLICATION
     sockets = tornado.netutil.bind_sockets(options.port)
