@@ -5,6 +5,19 @@ from .pydantic_generator import generate_model
 import logging
 _logger = logging.getLogger(__name__)
 
+class OMRecord():
+    def __init__(self, model_name):
+        self.model_name = model_name
+        self.model = getattr(sys.modules[__name__], model_name)
+
+    async def get(self, pk):
+        return self.model.get(pk)
+    
+    async def create(self, data):
+        new_record = self.model(**data)
+        new_record.save()
+        return new_record
+
 def register_om_model(model_name, model_yml_dict):
     """
         model_name: res_partner, stock_code

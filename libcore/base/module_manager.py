@@ -97,19 +97,19 @@ class ModuleManager(SingletonClass):
         redis_om.Migrator().run()
 
         # test new model
-        _logger.info("Debug dynamic redis model %s" % str(install_models))
-        for model_name in install_models:
-            if model_name != "stock_code":
-                continue
-            model = getattr(om_model, model_name)
-            new_code = model(
-                name="FLC",
-                code="flc",
-            )
-            new_code.save()
-            _logger.info("%s -> created record %s", model_name, new_code.key())
-            res2 = model.find(model.code == "flc").all()
-            _logger.info("res2 (n=%d): %s" % (len(res2), str(res2)))
+        # _logger.info("Debug dynamic redis model %s" % str(install_models))
+        # for model_name in install_models:
+        #     if model_name != "stock_code":
+        #         continue
+        #     model = getattr(om_model, model_name)
+        #     new_code = model(
+        #         name="FLC",
+        #         code="flc",
+        #     )
+        #     new_code.save()
+        #     _logger.info("%s -> created record %s", model_name, new_code.key())
+        #     res2 = model.find(model.code == "flc").all()
+        #     _logger.info("res2 (n=%d): %s" % (len(res2), str(res2)))
         pass
     
     def install_module(self, module_path, module_config_dict={}):

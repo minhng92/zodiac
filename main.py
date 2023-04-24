@@ -1,8 +1,9 @@
+import os
 import sys
 import asyncio
 import tornado
 from tornado.options import define, options
-from libcore.base.env_manager import EnvManager
+from libcore.base.controller_manager import ControllerManagerListCreate, ControllerManagerGetUpdateDelete
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -22,39 +23,43 @@ define("modules", default="modules/_root", help="app config file")
 define("extra_modules", default="modules/btc_chart", help="extra app config file")
 define("install", default="stock_chart", help="Install modules")
 
+os.environ["REDIS_OM_URL"] = options.redis_url
+from libcore.base.env_manager import EnvManager
+
 class MainHandler(tornado.web.RequestHandler):
-    def initialize(self, config):
-        self.config = config
+    def initialize(self, modules):
+        self.modules = modules
 
     def get(self):
-        self.write("Hello, world; config = %s" % self.config)
+        self.write("Hello, world; modules = %s" % self.modules)
 
-def make_app():
+def make_app(env):
+    MODEL_LISTCREATE_ENDPOINT = r'/<model_name>/?'
+    MODEL_GETUPDATEDELETE_ENDPOINT = r'/<model_name>/(?P<id>[a-zA-Z0-9-]+)/?'
     controllers = []
-    controllers.append(
-        (r"/", MainHandler, {"config": options.config})
-    )
+    controllers += [
+        (r"/", MainHandler, {"modules": options.modules}),
+        (MODEL_LISTCREATE_ENDPOINT, ControllerManagerListCreate, {"env": env}),
+        (MODEL_GETUPDATEDELETE_ENDPOINT, ControllerManagerGetUpdateDelete, {"env": env}),
+    ]
     return tornado.web.Application(controllers)
     
 def main():
     tornado.options.parse_command_line()
 
-    ## TODO: pass yml config to model manager to migrate data structure -> Redis OM
     env = EnvManager()
     env.load_modules(
         modules_from_config=[options.modules, options.extra_modules], 
         install_from_config=options.install
     )
-
-    raise Exception("Dev env stop here")
-
+    
     # BUILD TORNADO APPLICATION
     sockets = tornado.netutil.bind_sockets(options.port)
     tornado.process.fork_processes(options.num_workers)
     async def post_fork_main():
         # server = TCPServer()
         # server.add_sockets(sockets)
-        server = tornado.httpserver.HTTPServer(make_app())
+        server = tornado.httpserver.HTTPServer(make_app(env))
         server.add_sockets(sockets)
         await asyncio.Event().wait()
     asyncio.run(post_fork_main())
