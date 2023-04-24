@@ -8,13 +8,23 @@ _logger = logging.getLogger(__name__)
 class OMRecord():
     def __init__(self, model_name):
         self.model_name = model_name
-        self.model = getattr(sys.modules[__name__], model_name)
+        self.cls_model = getattr(sys.modules[__name__], model_name)
+        _logger.info("OMRecord -----------")
+        _logger.info(self.cls_model)
+        _logger.info(vars(self.cls_model))
+        _logger.info("-0------- -----------")
+
+    def __len__(self):
+        return self.cls_model.find().count()
+
+    async def list(self, offset=0, limit=60, sort_fields=None):
+        return self.cls_model.find().page(offset, limit)
 
     async def get(self, pk):
-        return self.model.get(pk)
+        return self.cls_model.get(pk)
     
     async def create(self, data):
-        new_record = self.model(**data)
+        new_record = self.cls_model(**data)
         new_record.save()
         return new_record
 

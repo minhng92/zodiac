@@ -7,6 +7,9 @@ from .redis_manager import RedisManager
 from .module_manager import ModuleManager
 from .om_model import OMRecord
 
+import logging
+_logger = logging.getLogger(__name__)
+
 class EnvManager(SingletonClass):
     def __init__(self):
         self.redis_manager = RedisManager()

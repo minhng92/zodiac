@@ -34,8 +34,8 @@ class MainHandler(tornado.web.RequestHandler):
         self.write("Hello, world; modules = %s" % self.modules)
 
 def make_app(env):
-    MODEL_LISTCREATE_ENDPOINT = r'/<model_name>/?'
-    MODEL_GETUPDATEDELETE_ENDPOINT = r'/<model_name>/(?P<id>[a-zA-Z0-9-]+)/?'
+    MODEL_LISTCREATE_ENDPOINT = r'/rest/(?P<model_name>[a-zA-Z0-9-_]+)/?'
+    MODEL_GETUPDATEDELETE_ENDPOINT = r'/rest/(?P<model_name>[a-zA-Z0-9-_]+)/(?P<id>[a-zA-Z0-9-]+)/?'
     controllers = []
     controllers += [
         (r"/", MainHandler, {"modules": options.modules}),
