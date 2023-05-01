@@ -9,7 +9,6 @@ from aredis_om.model.model import model_registry
 
 import logging
 _logger = logging.getLogger(__name__)
-# _logger.setLevel(logging.DEBUG)
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -17,15 +16,6 @@ logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s@%(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-
-redis = redis_om.get_redis_connection(url=os.getenv("REDIS_OM_URL", "redis://@redis_stack:6380")) # "redis://your-username:your-password@localhost:6379"
-
-os.environ["REDIS_OM_URL"] = "redis://@redis_stack:6380"
-
-# Meta = type('Meta', (object, ), {'index_name': 'abc', 'database': redis})
-
-# class Meta(redis_om.ModelMeta):
-#     database = redis
 
 FIELD_ATTRIBUTES = {
     "type": str,
@@ -62,7 +52,6 @@ def generate_pydantic_model(name, attrs, attr_type=Optional[float], attr_val=red
         **attr_dict,
         __base__=redis_om.JsonModel
     )
-    # setattr(result, "_meta", Meta)
     return result
 
 def generate_model(name, _inherit=None, _fields={}):
@@ -90,13 +79,6 @@ def generate_model(name, _inherit=None, _fields={}):
             attr_type = eval(fattr.get("type", "str"))
             attr_field = redis_om.Field(index=fattr.get("index", True))
             attr_dict[attr_name] = (attr_type, attr_field)
-
-            print("attr_dict", attr_dict)
-    # return pydantic.create_model(
-    #     name, 
-    #     **attr_dict,
-    #     __base__=eval(_inherit)
-    # )
     return pydantic.create_model(
         name, 
         **attr_dict
@@ -129,19 +111,6 @@ def main():
 
         # register new class
         model_registry["%s123"%model_name] = models[model_name]
-        print("Register model registry")
-        print("model_registry", model_registry)
-
-    # customer = generate_pydantic_model(
-    #     name="Customer",
-    #     attrs=["a", "b", "c"]
-    # )
-    # _logger.info("Customer class: %s", str(customer))
-    # _logger.info("customer.__classes__: %s", str(customer.__classes__))
-
-    print("sys.modules[__name__]", sys.modules[__name__])
-
-    print("models", models)
 
     customer = models["Customer"]
     andrew = customer(

@@ -5,6 +5,8 @@ import tornado
 import logging
 _logger = logging.getLogger(__name__)
 
+# https://www.ml4devs.com/articles/python-microservices-tornado-02-rest-unit-integration-tests/
+
 class BaseRequestHandler(tornado.web.RequestHandler):
     def initialize(self, env) -> None:
         self.env = env
@@ -41,8 +43,10 @@ class ControllerManagerListCreate(BaseRequestHandler):
         records = await self.env[model_name].list(offset=offset, limit=limit, sort_fields=sort_fields)
         self.set_status(200)
         self.finish(json.dumps({
-            "items": json.dumps(records, default=vars),
-            "total_items": len(self.env[model_name]),
+            "items": records.json(),
+            "offset": offset,
+            "limit": limit,
+            "total": len(self.env[model_name]),
         }))
 
     async def post(self, model_name):
@@ -77,25 +81,34 @@ class ControllerManagerGetUpdateDelete(BaseRequestHandler):
         except KeyError as e:
             raise tornado.web.HTTPError(404, reason=str(e))
 
-    # async def put(self, id):
-    #     try:
-    #         addr = json.loads(self.request.body.decode('utf-8'))
-    #         await self.service.update_address(id, addr)
-    #         self.set_status(204)
-    #         self.finish()
-    #     except (json.decoder.JSONDecodeError, TypeError):
-    #         raise tornado.web.HTTPError(
-    #             400, reason='Invalid JSON body'
-    #         )
-    #     except KeyError as e:
-    #         raise tornado.web.HTTPError(404, reason=str(e))
-    #     except ValueError as e:
-    #         raise tornado.web.HTTPError(400, reason=str(e))
+    async def put(self, model_name, id):
+        _logger.info("ControllerManagerGetUpdateDelete put %s %s", str(model_name), str(id))
+        try:
+            data = json.loads(self.request.body.decode('utf-8'))
+            record = await self.env[model_name].get(id)
+            await record.update(data)
+            self.set_status(200)
+            self.finish(json.dumps(record, default=vars))
+            # self.set_status(204)  # standard behavior => 204 no content
+            # self.finish()
+        except (json.decoder.JSONDecodeError, TypeError):
+            raise tornado.web.HTTPError(
+                400, reason='Invalid JSON body'
+            )
+        except KeyError as e:
+            raise tornado.web.HTTPError(404, reason=str(e))
+        except ValueError as e:
+            raise tornado.web.HTTPError(400, reason=str(e))
 
-    # async def delete(self, id):
-    #     try:
-    #         await self.service.delete_address(id)
-    #         self.set_status(204)
-    #         self.finish()
-    #     except KeyError as e:
-    #         raise tornado.web.HTTPError(404, reason=str(e))
+    async def delete(self, model_name, id):
+        _logger.info("ControllerManagerGetUpdateDelete delete %s %s", str(model_name), str(id))
+        try:
+            record = await self.env[model_name].get(id)
+            response = record.json()
+            await record.delete()
+            self.set_status(200)
+            self.finish(response)
+            # self.set_status(204)  # standard behavior => 204 no content
+            # self.finish()
+        except KeyError as e:
+            raise tornado.web.HTTPError(404, reason=str(e))

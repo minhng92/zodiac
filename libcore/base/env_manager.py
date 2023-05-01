@@ -5,7 +5,7 @@ from redis.commands.graph.edge import Edge
 from .singleton_class import SingletonClass
 from .redis_manager import RedisManager
 from .module_manager import ModuleManager
-from .om_model import OMRecord
+from .om_model import OMModel
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -16,13 +16,13 @@ class EnvManager(SingletonClass):
         self.module_manager = ModuleManager()
         self.modules_from_config = []
         self.install_from_config = ""
-        self.model_omrecords = {}
+        self.model_om = {}
         pass
 
     def __getitem__(self, model_name):
-        if model_name not in self.model_omrecords:
-            self.model_omrecords[model_name] = OMRecord(model_name)
-        return self.model_omrecords[model_name]
+        if model_name not in self.model_om:
+            self.model_om[model_name] = OMModel(model_name)
+        return self.model_om[model_name]
 
     # Load module recursively
     def load_modules(self, modules_from_config=[], install_from_config=""):
