@@ -33,14 +33,15 @@ class BaseRequestHandler(tornado.web.RequestHandler):
 
 
 class ControllerManagerListCreate(BaseRequestHandler):
+    """
+    curl -i -X GET https://minhng92-orange-invention-9qqqjjgp7rwfggg-7777.preview.app.github.dev/rest/stock_code/
+    """
     async def get(self, model_name):
         offset = self.get_argument('offset', 0)
         limit = self.get_argument('limit', 60)
-        sort_fields = self.get_argument('sort_fields', None)
-        if sort_fields and isinstance(sort_fields, str):
-            sort_fields = [sf.strip() for sf in sort_fields.split(",")]       
+        sort_by = self.get_argument('sort_by', [])
 
-        records = await self.env[model_name].list(offset=offset, limit=limit, sort_fields=sort_fields)
+        records = await self.env[model_name].list(offset=offset, limit=limit, sort_by=sort_by)
         self.set_status(200)
         self.finish(json.dumps({
             "items": records.json(),
@@ -72,6 +73,9 @@ class ControllerManagerListCreate(BaseRequestHandler):
         #     raise tornado.web.HTTPError(400, reason=str(e))
 
 class ControllerManagerGetUpdateDelete(BaseRequestHandler):
+    """
+    curl -i -X GET https://minhng92-orange-invention-9qqqjjgp7rwfggg-7777.preview.app.github.dev/rest/stock_code/01GYQNC5A6GGPY0960MFYZZGMT
+    """
     async def get(self, model_name, id):
         _logger.info("ControllerManagerGetUpdateDelete get %s %s", str(model_name), str(id))
         try:
@@ -81,6 +85,9 @@ class ControllerManagerGetUpdateDelete(BaseRequestHandler):
         except KeyError as e:
             raise tornado.web.HTTPError(404, reason=str(e))
 
+    """
+    curl -i -X PUT https://minhng92-orange-invention-9qqqjjgp7rwfggg-7777.preview.app.github.dev/rest/stock_code/01GYQNC5A6GGPY0960MFYZZGMT --data '{"code": "flc4"}'
+    """
     async def put(self, model_name, id):
         _logger.info("ControllerManagerGetUpdateDelete put %s %s", str(model_name), str(id))
         try:
@@ -100,6 +107,9 @@ class ControllerManagerGetUpdateDelete(BaseRequestHandler):
         except ValueError as e:
             raise tornado.web.HTTPError(400, reason=str(e))
 
+    """
+    curl -i -X DELETE https://minhng92-orange-invention-9qqqjjgp7rwfggg-7777.preview.app.github.dev/rest/stock_code/01GYQNC5A6GGPY0960MFYZZGMT
+    """
     async def delete(self, model_name, id):
         _logger.info("ControllerManagerGetUpdateDelete delete %s %s", str(model_name), str(id))
         try:

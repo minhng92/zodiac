@@ -19,6 +19,9 @@ class OMRecordSet(object):
             return getattr(self, attr)
         return getattr(self.items, attr)
     
+    def keys(self):
+        return [x.pk for x in self.items]
+
     def json(self):
         return json.dumps([x.__dict__ for x in self.items])
 
@@ -30,12 +33,10 @@ class OMRecordSet(object):
         pass
     
     async def delete(self):
-        print("self.items", self.items)
-        for item in self.items:
-            print("item", item)
-            item.delete(item.key())
-            item.save()
-            pass
+        if self.items:
+            model = self.items[0].__class__
+            expr = " | ".join(['(model.pk == "%s")' % k for k in self.keys()])
+            model.find(eval(expr)).delete()
         pass
 
 class OMModel():
@@ -50,8 +51,17 @@ class OMModel():
     def __len__(self):
         return self.cls_model.find().count()
 
-    async def list(self, offset=0, limit=60, sort_fields=None):
-        return OMRecordSet(self.cls_model.find().page(offset, limit))
+    async def find(self, *expressions, offset=0, limit=60, sort_by=[]):
+        if sort_by and isinstance(sort_by, str):
+            sort_by = [sf.strip() for sf in sort_by.split(",")]
+        if expressions:
+            result = self.cls_model.find(expressions).sort_by(*sort_by).page(offset, limit)
+        else:
+            result = self.cls_model.find().sort_by(*sort_by).page(offset, limit)
+        return OMRecordSet(result)
+
+    async def list(self, offset=0, limit=60, sort_by=[]):
+        return await self.find(offset=offset, limit=limit, sort_by=sort_by)
 
     async def get(self, pk):
         return OMRecordSet(self.cls_model.get(pk))
@@ -60,6 +70,12 @@ class OMModel():
         new_record = self.cls_model(**data)
         new_record.save()
         return OMRecordSet(new_record)
+
+    async def delete(self, *expressions, return_type="json"):
+        assert return_type in ("json", "key")
+        result = OMRecordSet(self.cls_model.find(*expressions)).json() if return_type == "json" else OMRecordSet(self.cls_model.find(*expressions)).keys()
+        self.cls_model.find(*expressions).delete()
+        return result
 
 def register_om_model(model_name, model_yml_dict):
     """

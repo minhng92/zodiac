@@ -42,7 +42,7 @@ def make_app(env):
         (MODEL_LISTCREATE_ENDPOINT, ControllerManagerListCreate, {"env": env}),
         (MODEL_GETUPDATEDELETE_ENDPOINT, ControllerManagerGetUpdateDelete, {"env": env}),
     ]
-    return tornado.web.Application(controllers)
+    return tornado.web.Application(controllers, serve_traceback=True)
     
 def main():
     tornado.options.parse_command_line()
