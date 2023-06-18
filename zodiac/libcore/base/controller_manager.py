@@ -122,3 +122,10 @@ class ControllerManagerGetUpdateDelete(BaseRequestHandler):
             # self.finish()
         except KeyError as e:
             raise tornado.web.HTTPError(404, reason=str(e))
+
+class MainHandler(tornado.web.RequestHandler):
+    def initialize(self, app_info):
+        self.app_info = app_info
+
+    def get(self):
+        self.write("%s" % self.app_info)
