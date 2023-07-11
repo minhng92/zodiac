@@ -12,6 +12,8 @@ from . import om_model
 import logging
 _logger = logging.getLogger(__name__)
 
+CONF_YML_NAME = "conf.yml"
+
 class ModuleManager(SingletonClass):
     def __init__(self):
         self.conn = RedisManager().get_conn()
@@ -22,30 +24,34 @@ class ModuleManager(SingletonClass):
             pass
         pass
 
-    def build_graph_module(self, config):
-        if not config: # early quit
+    def build_graph_module(self, module_paths, current_path=False):
+        if not module_paths: # early quit
             return False
         
-        if isinstance(config, (tuple, list)):
+        if isinstance(module_paths, (tuple, list)):
             result = []
-            for cf in config:
-                result.append(self.build_graph_module(cf))
+            for mp in module_paths:
+                result.append(self.build_graph_module(mp, current_path=current_path))
             return result
-        elif isinstance(config, str):
-            if os.path.isdir(config):
-                config = os.path.join(config, "__conf__.yml")
+        elif isinstance(module_paths, str): # only path of module
+            module_path = module_paths
+            if current_path:
+                module_path = os.path.join(current_path, module_path)
 
-            config_dict = OmegaConf.to_container(OmegaConf.load(config))
+            if os.path.isdir(module_path):
+                config_yml = os.path.join(module_path, CONF_YML_NAME)
+
+            config_dict = OmegaConf.to_container(OmegaConf.load(config_yml))
             node_properties = dict(config_dict)
-            module_name = os.path.basename(os.path.dirname(os.path.abspath(config)))
+            module_name = os.path.basename(module_path)
             node_properties.update({
                 "CODE": module_name,
-                "MODULE_PATH": os.path.dirname(os.path.abspath(config))
+                "MODULE_PATH": os.path.abspath(module_path)
             })
             result = Node(alias=module_name, label="MODULE", properties=node_properties)
             self.module_graph.add_node(result)
 
-            depend_nodes = self.build_graph_module(config_dict.get("DEPENDS", False))
+            depend_nodes = self.build_graph_module(config_dict.get("DEPENDS", False), current_path=module_path)
             if depend_nodes:
                 for dnode in depend_nodes:
                     self.module_graph.add_edge(Edge(result, 'DEPENDS', dnode, properties={}))
