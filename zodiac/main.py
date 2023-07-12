@@ -2,10 +2,8 @@ import os
 import sys
 import asyncio
 import tornado
-from tornado.options import define, options
 from libcore.base.controller_manager import ControllerManagerListCreate, ControllerManagerGetUpdateDelete, MainHandler
-from omegaconf import OmegaConf
-from libcore.base.yml_manager import YmlManager
+from libcore.base.conf_manager import conf_manager
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -17,12 +15,9 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-yml_manager = YmlManager("config.yml")
-config_key_flatten_dict = yml_manager.get_flatten_dict()
-for ckey, cval in config_key_flatten_dict.items():
-    define(ckey, default=cval)  # define("zodiac.port", 7777)
+conf_manager += "conf.yml"
 
-os.environ["REDIS_OM_URL"] = options["zodiac.redis_url"]
+os.environ["REDIS_OM_URL"] = conf_manager[conf_manager.base]["redis_url"]
 from libcore.base.env_manager import EnvManager
 
 def make_app(env):
@@ -37,17 +32,16 @@ def make_app(env):
     return tornado.web.Application(controllers, serve_traceback=True)
     
 def main():
-    tornado.options.parse_command_line()
-
     env = EnvManager()
+    base_conf = conf_manager[conf_manager.base]
     env.load_modules(
-        modules_from_config=[options["zodiac.modules"], options["zodiac.extra_modules"]], 
-        install_from_config=options["zodiac.install"],
+        modules_from_config=[base_conf["modules"], base_conf["extra_modules"]], 
+        install_from_config=base_conf["install"],
     )
     
     # BUILD TORNADO APPLICATION
-    sockets = tornado.netutil.bind_sockets(options["zodiac.port"])
-    tornado.process.fork_processes(options["zodiac.num_workers"])
+    sockets = tornado.netutil.bind_sockets(base_conf["port"])
+    tornado.process.fork_processes(base_conf["num_workers"])
     async def post_fork_main():
         # server = TCPServer()
         # server.add_sockets(sockets)

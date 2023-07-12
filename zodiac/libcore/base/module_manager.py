@@ -5,7 +5,7 @@ from redis.commands.graph.node import Node
 from redis.commands.graph.edge import Edge
 
 from .redis_manager import RedisManager
-from .singleton_class import SingletonClass
+from .app_singleton import AppSingleton
 from .om_model import register_om_model
 from . import om_model
 
@@ -14,7 +14,7 @@ _logger = logging.getLogger(__name__)
 
 CONF_YML_NAME = "conf.yml"
 
-class ModuleManager(SingletonClass):
+class ModuleManager(AppSingleton):
     def __init__(self):
         self.conn = RedisManager().get_conn()
         self.module_graph = self.conn.graph()
@@ -132,3 +132,5 @@ class ModuleManager(SingletonClass):
                 _logger.info("register_om_model: %s with %s", model_name, str(model_yml_dict))
         return install_models  
         pass
+
+module_manager = ModuleManager()

@@ -5,3 +5,6 @@ zodiac:
   modules: ../modules/_root
   extra_modules: ../modules/btc_chart
   install: stock_chart
+
+const:
+  
