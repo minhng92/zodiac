@@ -2,9 +2,15 @@ zodiac:
   port: 7777
   num_workers: 1
   redis_url: redis://@redis_stack:6380?decode_responses=True
-  modules: ../modules/_root
-  extra_modules: ../modules/btc_chart
-  install: stock_chart
+  module_dirs:
+    - ../modules
+  install_modules:
+    - stock_chart
+
+controller:
+  rest:
+    listing_limit: 60
 
 const:
-  
+  CONF_YML: conf.yml  # Loads <module>/conf.yml by default
+  # USERNAME_ADMIN: admin # tmp

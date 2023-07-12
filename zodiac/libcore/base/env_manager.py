@@ -47,7 +47,7 @@ class EnvManager(AppSingleton):
     def load_modules(self, modules_from_config=[], install_from_config=""):
         self.modules_from_config = modules_from_config
         self.install_from_config = install_from_config
-        self.module_manager.load_modules(module_paths=modules_from_config, install_modules=[module_code.strip() for module_code in install_from_config.split(",")])
+        self.module_manager.load_modules(module_paths=modules_from_config, install_modules=install_from_config)
         pass
     
     # Add modules on-the-fly

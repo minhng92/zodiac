@@ -1,5 +1,6 @@
-NAME: Stock Chart
-# DEPENDS:
-MODELS:
-  - models/stock_code.yml
-  - models/stock_own.yml
+stock_chart:
+  name: Stock Chart
+  # depends:
+  models:
+    - models/stock_code.yml
+    - models/stock_own.yml

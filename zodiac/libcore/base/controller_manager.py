@@ -38,7 +38,7 @@ class ControllerManagerListCreate(BaseRequestHandler):
     """
     async def get(self, model_name):
         offset = self.get_argument('offset', 0)
-        limit = self.get_argument('limit', 60)
+        limit = self.get_argument('limit', self.env.conf.get("controller", 60).get("rest").get("listing_limit", 60))
         sort_by = self.get_argument('sort_by', [])
 
         records = await self.env[model_name].list(offset=offset, limit=limit, sort_by=sort_by)

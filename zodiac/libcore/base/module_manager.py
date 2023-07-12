@@ -9,10 +9,10 @@ from .app_singleton import AppSingleton
 from .om_model import register_om_model
 from . import om_model
 
+from .conf_manager import conf_manager
+
 import logging
 _logger = logging.getLogger(__name__)
-
-CONF_YML_NAME = "conf.yml"
 
 class ModuleManager(AppSingleton):
     def __init__(self):
@@ -24,34 +24,43 @@ class ModuleManager(AppSingleton):
             pass
         pass
 
-    def build_graph_module(self, module_paths, current_path=False):
+    def build_graph_module(self, module_paths, module_dirs=[]):
         if not module_paths: # early quit
             return False
         
         if isinstance(module_paths, (tuple, list)):
             result = []
             for mp in module_paths:
-                result.append(self.build_graph_module(mp, current_path=current_path))
+                result.append(self.build_graph_module(mp, module_dirs=module_dirs))
             return result
         elif isinstance(module_paths, str): # only path of module
             module_path = module_paths
-            if current_path:
-                module_path = os.path.join(current_path, module_path)
+            if not os.path.isdir(module_path):
+                for mdir in module_dirs:
+                    if os.path.isdir(os.path.join(mdir, module_path)):
+                        module_path = os.path.join(mdir, module_path)
+                        break
+            # if module_dirs:
+            #     module_path = os.path.join(module_dirs, module_path)
 
             if os.path.isdir(module_path):
-                config_yml = os.path.join(module_path, CONF_YML_NAME)
+                config_yml = os.path.join(module_path, conf_manager[conf_manager.const]["CONF_YML"])
 
             config_dict = OmegaConf.to_container(OmegaConf.load(config_yml))
-            node_properties = dict(config_dict)
             module_name = os.path.basename(module_path)
+            node_properties = dict(config_dict)[module_name]
             node_properties.update({
-                "CODE": module_name,
-                "MODULE_PATH": os.path.abspath(module_path)
+                "code": module_name,
+                "module_path": os.path.abspath(module_path)
             })
             result = Node(alias=module_name, label="MODULE", properties=node_properties)
             self.module_graph.add_node(result)
 
-            depend_nodes = self.build_graph_module(config_dict.get("DEPENDS", False), current_path=module_path)
+            # load module's config
+            cfg_manager = conf_manager
+            cfg_manager += config_yml
+
+            depend_nodes = self.build_graph_module(config_dict.get("DEPENDS", False), module_dirs=module_dirs)
             if depend_nodes:
                 for dnode in depend_nodes:
                     self.module_graph.add_edge(Edge(result, 'DEPENDS', dnode, properties={}))
@@ -73,23 +82,25 @@ class ModuleManager(AppSingleton):
 
     # Load config recursively
     def load_modules(self, module_paths=[], install_modules=[]):
-        self.build_graph_module(module_paths)
+        self.build_graph_module(module_paths, module_dirs=conf_manager[conf_manager.base]["module_dirs"])
         self.module_graph.commit()        
         
         module_install_list = []
         graph_result = 1
+        # install_modules = [os.path.basename(inst_mod) for inst_mod in install_modules]
         while graph_result:
             # leaf node (included single node)
             match_query = "MATCH (p) WHERE NOT (p)-[]->() RETURN p"
             graph_query_result = self.module_graph.query(match_query)
-            graph_result = self.parse_graph_query(graph_query_result, prop_names=["CODE"]) # ['stock_chart', 'btc_chart']
+            graph_result = self.parse_graph_query(graph_query_result, prop_names=["code"]) # ['stock_chart', 'btc_chart']
             print(match_query, "=>", graph_result)
             print("--------------------------------")
             # resolve node leaf
             for module_code, node_list in zip(graph_result, graph_query_result.result_set):
+                print("debug", module_code, install_modules)
                 if module_code[0] in install_modules:
                     node_prop = node_list[0].properties
-                    module_install_list.append((node_prop["MODULE_PATH"], node_prop))
+                    module_install_list.append((node_prop["module_path"], node_prop))
                     pass
             # resolve and delete leaf node
             self.module_graph.query("MATCH (p) WHERE NOT (p)-[]->() DELETE p")
@@ -122,7 +133,7 @@ class ModuleManager(AppSingleton):
         print("INstall module:", module_path)
         print("module_config_dict", module_config_dict)
         install_models = []
-        for c_model_path in module_config_dict.get("MODELS", []):
+        for c_model_path in module_config_dict.get("models", []):
             model_path = os.path.join(module_path, c_model_path)
             model_path = c_model_path if not os.path.isfile(model_path) else model_path
             model_yml_dict = OmegaConf.to_container(OmegaConf.load(model_path))

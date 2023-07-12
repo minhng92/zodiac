@@ -1,3 +1,4 @@
-NAME: Stock Chart
-DEPENDS:
-- ../btc_chart
+eth_chart:
+  name: Stock Chart
+  depends:
+    - btc_chart

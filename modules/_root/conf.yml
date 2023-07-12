@@ -1,11 +1,12 @@
 # ---------------
 # | FULL CONFIG |
 # ---------------
-NAME: Root Application
-DEPENDS:
-  # - <abs url>
-  # - <rel path>
-  - ../stock_chart
-  - ../eth_chart
-# MODELS:
-  # - <rel path to model.yml>
+_root:
+  name: Root Application
+  depends:
+    # - <abs url>
+    # - <rel path>
+      - stock_chart
+      - eth_chart
+  # models:
+    # - <rel path to model.yml>
