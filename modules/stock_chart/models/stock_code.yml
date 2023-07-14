@@ -1,6 +1,7 @@
 stock_code:
   _inherit: JsonModel
   _fields:
-    name: type=str required=True index=True
-    code: type=str required=True index=True
-    
+    name: type=str required=True
+    code: type=str required=True
+    price: type=float required=False
+    note: type=str required=False

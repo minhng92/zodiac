@@ -50,6 +50,9 @@ class ControllerManagerListCreate(BaseRequestHandler):
             "total": len(self.env[model_name]),
         }))
 
+    """
+    curl -i -X POST https://minhng92-orange-invention-9qqqjjgp7rwfggg-7777.preview.app.github.dev/rest/stock_code/ --data '{"name": "FLC", "code": "flc"}'
+    """
     async def post(self, model_name):
         data = json.loads(self.request.body.decode('utf-8'))
         record = await self.env[model_name].create(data)

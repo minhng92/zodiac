@@ -10,13 +10,21 @@ FIELD_ATTRIBUTES = {
     "index": bool
 }
 
+FIELD_FORCE_VALUES = {
+    "required": False,
+    "index": True
+}
+
 def parse_field_value(fkey, attr_val):
     """
         attr_val: type=str required=True index=True
     """
     result = False
     kv = attr_val.split("%s="%fkey, 2)
-    if kv:
+
+    # print("attr_val, kv, fkey", attr_val, kv, fkey)
+
+    if kv and len(kv) > 1:
         v_contains_fval = kv[1]
         if v_contains_fval.startswith('"'):
             result = v_contains_fval.split('" ')[0]
@@ -24,6 +32,7 @@ def parse_field_value(fkey, attr_val):
             result = v_contains_fval.split("' ")[0]
         else:
             result = v_contains_fval.split(" ")[0]
+    
     return result
     pass
 
@@ -44,13 +53,17 @@ def generate_model(name, _inherit=None, _fields={}):
                         fval = float(fval)
                     elif ftype is bool:
                         fval = eval(fval.lower().title())   # True / False
+                    
+                    if fkey in FIELD_FORCE_VALUES.keys():
+                        fval = FIELD_FORCE_VALUES[fkey]
+
                 fattr[fkey] = fval
-                # print("- ", attr_name, fkey, str(fval))
+                print("- ", attr_name, fkey, str(fval))
             
             # print("fattr", fattr)
 
             attr_type = eval(fattr.get("type", "str"))
-            attr_field = redis_om.Field(index=fattr.get("index", True))
+            attr_field = redis_om.Field(index=fattr.get("index", True), default=pydantic.fields.Undefined)
             attr_dict[attr_name] = (attr_type, attr_field)
 
             # print("attr_dict", attr_dict)
